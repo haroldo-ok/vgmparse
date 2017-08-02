@@ -266,4 +266,8 @@ class Parser:
 
     def validate_vgm_version(self):
         if self.metadata['version'] not in self.supported_ver_list:
-            raise VersionError('VGM version is not supported')
+            raise VersionError('VGM version %s is not supported' % self.version_str())
+        
+    def version_str(self):
+        version = self.metadata['version']
+        return '%01x.%02x' % (version >> 8, version & 0xFF)
