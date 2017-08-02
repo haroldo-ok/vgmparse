@@ -18,41 +18,39 @@ class Parser:
 
     # Supported VGM versions
     supported_ver_list = [
+        0x00000101,
         0x00000150,
     ]
 
     # VGM metadata offsets
     metadata_offsets = {
-        # Version 1.50
-        0x00000150: {
-            'vgm_ident': {'offset': 0x00, 'size': 4, 'type_format': None},
-            'eof_offset': {'offset': 0x04, 'size': 4, 'type_format': '<I'},
-            'version': {'offset': 0x08, 'size': 4, 'type_format': '<I'},
-            'sn76489_clock': {'offset': 0x0c, 'size': 4, 'type_format': '<I'},
-            'ym2413_clock': {'offset': 0x10, 'size': 4, 'type_format': '<I'},
-            'gd3_offset': {'offset': 0x14, 'size': 4, 'type_format': '<I'},
-            'total_samples': {'offset': 0x18, 'size': 4, 'type_format': '<I'},
-            'loop_offset': {'offset': 0x1c, 'size': 4, 'type_format': '<I'},
-            'loop_samples': {'offset': 0x20, 'size': 4, 'type_format': '<I'},
-            'rate': {'offset': 0x24, 'size': 4, 'type_format': '<I'},
-            'sn76489_feedback': {
-                'offset': 0x28,
-                'size': 2,
-                'type_format': '<H',
-            },
-            'sn76489_shift_register_width': {
-                'offset': 0x2a,
-                'size': 1,
-                'type_format': 'B',
-            },
-            'ym2612_clock': {'offset': 0x2c, 'size': 4, 'type_format': '<I'},
-            'ym2151_clock': {'offset': 0x30, 'size': 4, 'type_format': '<I'},
-            'vgm_data_offset': {
-                'offset': 0x34,
-                'size': 4,
-                'type_format': '<I',
-            },
-        }
+        'vgm_ident': {'offset': 0x00, 'size': 4, 'type_format': None},
+        'eof_offset': {'offset': 0x04, 'size': 4, 'type_format': '<I'},
+        'version': {'offset': 0x08, 'size': 4, 'type_format': '<I'},
+        'sn76489_clock': {'offset': 0x0c, 'size': 4, 'type_format': '<I'},
+        'ym2413_clock': {'offset': 0x10, 'size': 4, 'type_format': '<I'},
+        'gd3_offset': {'offset': 0x14, 'size': 4, 'type_format': '<I'},
+        'total_samples': {'offset': 0x18, 'size': 4, 'type_format': '<I'},
+        'loop_offset': {'offset': 0x1c, 'size': 4, 'type_format': '<I'},
+        'loop_samples': {'offset': 0x20, 'size': 4, 'type_format': '<I'},
+        'rate': {'offset': 0x24, 'size': 4, 'type_format': '<I'},
+        'sn76489_feedback': {
+            'offset': 0x28,
+            'size': 2,
+            'type_format': '<H',
+        },
+        'sn76489_shift_register_width': {
+            'offset': 0x2a,
+            'size': 1,
+            'type_format': 'B',
+        },
+        'ym2612_clock': {'offset': 0x2c, 'size': 4, 'type_format': '<I'},
+        'ym2151_clock': {'offset': 0x30, 'size': 4, 'type_format': '<I'},
+        'vgm_data_offset': {
+            'offset': 0x34,
+            'size': 4,
+            'type_format': '<I',
+        },
     }
 
     def __init__(self, vgm_data):
@@ -81,7 +79,7 @@ class Parser:
         # Seek to the start of the VGM data
         self.data.seek(
             self.metadata['vgm_data_offset'] +
-            self.metadata_offsets[self.metadata['version']]['vgm_data_offset']['offset']
+            self.metadata_offsets['vgm_data_offset']['offset']
         )
 
         while True:
@@ -164,7 +162,7 @@ class Parser:
         # Seek to the start of the GD3 data
         self.data.seek(
             self.metadata['gd3_offset'] +
-            self.metadata_offsets[self.metadata['version']]['gd3_offset']['offset']
+            self.metadata_offsets['gd3_offset']['offset']
         )
 
         # Skip 8 bytes ('Gd3 ' string and 4 byte version identifier)
@@ -220,21 +218,20 @@ class Parser:
         self.metadata = {}
 
         # Iterate over the offsets and parse the metadata
-        for version, offsets in self.metadata_offsets.items():
-            for value, offset_data in offsets.items():
+        for value, offset_data in self.metadata_offsets.items():
 
-                # Seek to the data location and read the data
-                self.data.seek(offset_data['offset'])
-                data = self.data.read(offset_data['size'])
+            # Seek to the data location and read the data
+            self.data.seek(offset_data['offset'])
+            data = self.data.read(offset_data['size'])
 
-                # Unpack the data if required
-                if offset_data['type_format'] is not None:
-                    self.metadata[value] = struct.unpack(
-                        offset_data['type_format'],
-                        data,
-                    )[0]
-                else:
-                    self.metadata[value] = data
+            # Unpack the data if required
+            if offset_data['type_format'] is not None:
+                self.metadata[value] = struct.unpack(
+                    offset_data['type_format'],
+                    data,
+                )[0]
+            else:
+                self.metadata[value] = data
 
         # Seek back to the original position in the VGM data
         self.data.seek(original_pos)
