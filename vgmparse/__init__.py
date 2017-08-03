@@ -268,3 +268,31 @@ class Parser:
     def version_str(self):
         version = self.metadata['version']
         return '%01x.%02x' % (version >> 8, version & 0xFF)
+    
+    def save(self, buffer):
+        # Pre-fill the header with zeroes
+        buffer.seek(0)
+        buffer.write(b'\0' * 0x40)
+
+        # Iterate over the offsets and write the metadata
+        for value, offset_data in self.metadata_offsets.items():
+
+            # Seek to the data location and read the data
+            buffer.seek(offset_data['offset'])
+
+            # Unpack the data if required
+            if offset_data['type_format'] is not None:
+                data = struct.pack(
+                    offset_data['type_format'],
+                    self.metadata[value],
+                )
+                buffer.write(data)
+            else:
+                buffer.write(self.metadata[value])
+                
+        # Write out the commands
+        for cmd in self.command_list:
+            buffer.write(cmd['command'])
+            if cmd['data']:
+                buffer.write(cmd['data']) 
+        

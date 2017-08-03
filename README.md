@@ -79,3 +79,12 @@ then seek and read like a file:
 @>>> vgm_data.data_block.read(5)
 b'\x82\x88\x8a\x8a\x88'
 ```
+
+### Saving a VGM file
+
+You can save the VGM back into a file by using the `.save()` method:
+
+```
+@>>> vgm_out = open('newfile.vgm', 'wb')
+@>>> vgm_data.save(vgm_out)
+```
